@@ -2,6 +2,8 @@ package com.calculator.model;
 
 import com.calculator.exception.CalculatorException;
 import com.calculator.exception.DivisionByZeroException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BasicCalculatorModel implements CalculatorModel {
 
@@ -27,57 +29,83 @@ public class BasicCalculatorModel implements CalculatorModel {
 
     @Override
     public double calculateExpression(String expression) throws CalculatorException {
-        return parseAndCalculate(expression);
-    }
-
-    public double parseAndCalculate(String expression) throws CalculatorException {
         if (expression == null || expression.trim().isEmpty()) {
             throw new CalculatorException("Expression cannot be empty.");
         }
 
         String cleanExpr = expression.replaceAll("\\s+", "");
 
-        char opChar = ' ';
-        int opIndex = -1;
-
-        for (int i = 0; i < cleanExpr.length(); i++) {
-            char c = cleanExpr.charAt(i);
-            if (i > 0 && (c == '+' || c == '-' || c == '*' || c == '/')) {
-                opChar = c;
-                opIndex = i;
-                break;
-            }
-        }
-
-        if (opIndex == -1) {
-            try {
-                return Double.parseDouble(cleanExpr);
-            } catch (NumberFormatException e) {
-                throw new CalculatorException("Invalid numerical expression: " + expression);
-            }
-        }
-
-        String leftStr = cleanExpr.substring(0, opIndex);
-        String rightStr = cleanExpr.substring(opIndex + 1);
-
-        double num1;
-        double num2;
-
         try {
-            num1 = Double.parseDouble(leftStr);
-            num2 = Double.parseDouble(rightStr);
+            List<Double> numbers = new ArrayList<>();
+            List<Character> operators = new ArrayList<>();
+
+            int i = 0;
+            while (i < cleanExpr.length()) {
+                char c = cleanExpr.charAt(i);
+                if (c == '+' || c == '-' || c == '*' || c == '/') {
+                    // Handle negative numbers at the beginning or after another operator
+                    if (c == '-' && (i == 0 || cleanExpr.charAt(i - 1) == '+' || cleanExpr.charAt(i - 1) == '-' || cleanExpr.charAt(i - 1) == '*' || cleanExpr.charAt(i - 1) == '/')) {
+                        int start = i;
+                        i++;
+                        while (i < cleanExpr.length() && (Character.isDigit(cleanExpr.charAt(i)) || cleanExpr.charAt(i) == '.')) {
+                            i++;
+                        }
+                        numbers.add(Double.parseDouble(cleanExpr.substring(start, i)));
+                    } else {
+                        operators.add(c);
+                        i++;
+                    }
+                } else {
+                    int start = i;
+                    while (i < cleanExpr.length() && (Character.isDigit(cleanExpr.charAt(i)) || cleanExpr.charAt(i) == '.')) {
+                        i++;
+                    }
+                    numbers.add(Double.parseDouble(cleanExpr.substring(start, i)));
+                }
+            }
+
+            if (numbers.isEmpty()) {
+                throw new CalculatorException("Invalid expression.");
+            }
+
+            // First pass: Multiplication and Division (Operator Precedence)
+            for (int j = 0; j < operators.size(); j++) {
+                char op = operators.get(j);
+                if (op == '*' || op == '/') {
+                    double n1 = numbers.get(j);
+                    double n2 = numbers.get(j + 1);
+                    double res;
+                    if (op == '*') {
+                        res = n1 * n2;
+                    } else {
+                        if (n2 == 0) {
+                            throw new DivisionByZeroException();
+                        }
+                        res = n1 / n2;
+                    }
+                    numbers.set(j, res);
+                    numbers.remove(j + 1);
+                    operators.remove(j);
+                    j--;
+                }
+            }
+
+            // Second pass: Addition and Subtraction
+            double result = numbers.get(0);
+            for (int j = 0; j < operators.size(); j++) {
+                char op = operators.get(j);
+                double n2 = numbers.get(j + 1);
+                if (op == '+') {
+                    result += n2;
+                } else if (op == '-') {
+                    result -= n2;
+                }
+            }
+
+            return result;
+
         } catch (NumberFormatException e) {
-            throw new CalculatorException("Invalid numbers in expression: " + expression);
+            throw new CalculatorException("Invalid numerical expression: " + expression);
         }
-
-        Operator operator = switch (opChar) {
-            case '+' -> Operator.ADD;
-            case '-' -> Operator.SUBTRACT;
-            case '*' -> Operator.MULTIPLY;
-            case '/' -> Operator.DIVIDE;
-            default -> throw new CalculatorException("Unknown operator in expression.");
-        };
-
-        return calculate(num1, num2, operator);
     }
 }
