@@ -15,3 +15,4 @@ public class CalculatorController {
         this.view = view;
         this.historyService = historyService;
     }
+}
