@@ -1,152 +1,63 @@
 package com.calculator.controller;
 
-import com.calculator.exception.CalculatorException;
 import com.calculator.model.CalculatorModel;
-import com.calculator.view.CalculatorView;
 import com.calculator.service.HistoryService;
-import com.calculator.view.calcform;
+import com.calculator.view.CalculatorView;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import javax.swing.JButton;
 
-public class CalculatorController implements ActionListener {
+public class CalculatorController {
 
     private final CalculatorModel model;
     private final CalculatorView view;
     private final HistoryService historyService;
 
-
     public CalculatorController(CalculatorModel model, CalculatorView view, HistoryService historyService) {
         this.model = model;
         this.view = view;
         this.historyService = historyService;
-        this.view.addButtonListener(this);
-    }
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        try {
-            buttonClick(e);
-        } catch (CalculatorException ex) {
-            view.showError();
-        }
-    }
-    public void buttonClick(ActionEvent click) throws CalculatorException {
-        String input = ((JButton)click.getSource()).getText();
-        inputHandle(input);
+
+        // Σύνδεση του listener σε όλα τα κουμπιά του View
+        this.view.addButtonListener(new ButtonClickListener());
     }
 
-    public void buttonTyped(KeyEvent type) throws CalculatorException {
-        String input = String.valueOf(type.getKeyChar());
-        inputHandle(input);
-    }
+    private class ButtonClickListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String text = ((JButton) e.getSource()).getText();
 
-    public void inputHandle(String input) throws CalculatorException {
+            switch (text) {
+                case "C":
+                    view.clearDisplay();
+                    break;
 
-        String expresion = view.getDisplayText();
-
-        switch (input){
-            case "=":
-            case "M+":
-            case "M-":
-                if (expresion.isBlank()){
-                    return;
-                }
-                try {
-                    double result = model.calculateExpression(expresion);
-                    if (input.equals("M+")){
-                        historyService.addM(result);
+                case "⌫":
+                    String currentText = view.getDisplayText();
+                    if (!currentText.isEmpty()) {
+                        view.setDisplayText(currentText.substring(0, currentText.length() - 1));
                     }
-                    if (input.equals("M-")){
-                        historyService.subM(result);
+                    break;
+
+                case "=":
+                    String expr = view.getDisplayText().trim();
+                    if (!expr.isEmpty()) {
+                        try {
+                            double res = model.calculateExpression(expr);
+                            view.setDisplayText(String.valueOf(res));
+                            historyService.addEntry(expr, res);
+                        } catch (Exception ex) {
+                            view.showError();
+                        }
                     }
-                    view.setDisplayText(String.valueOf(result));
+                    break;
 
-
-                } catch (CalculatorException exception) {
-                    view.showError();
-                }
-
-                break;
-            case "clear":
-                view.clearDisplay();
-                break;
-            case ".":
-                addDec(expresion);
-                break;
-            case "+":
-            case "-":
-            case "/":
-            case  "*":
-                addOp(expresion,input);
-                break;
-
-            case "MC":
-                historyService.clearM();
-                break;
-
-            case "BACKSPACE":
-                if (!expresion.isEmpty()) {
-                    view.setDisplayText(
-                            expresion.substring(0, expresion.length() - 1)
-                    );
-                }
-                break;
-
-            default:
-                if (input.matches("[0-9]")){
-                    addDigit(expresion,input);
-                }
-                break;
-        }
-    }
-
-    public void addDigit(String expresion,String input){
-        view.setDisplayText(expresion+input);
-    }
-
-    public void addOp(String expresion,String op){
-        if (expresion.isEmpty()){                                           //this method is for ensuring opperators
-            if (op.equals("-")){                                            //aren't used twice in a row
-                view.setDisplayText("-");
+                default:
+                    // Αριθμοί και τελεστές (+, -, *, /, ^, √, .)
+                    view.setDisplayText(view.getDisplayText() + text);
+                    break;
             }
-            return;
-        }
-        char lastChar = expresion.charAt(expresion.length() - 1);
-
-        if (isOperator(lastChar)) {
-
-            view.setDisplayText(
-                    expresion.substring(0, expresion.length() - 1)
-                            + op);
-        } else {
-            view.setDisplayText(expresion + op);
         }
     }
-
-    public void addDec(String expresion){
-        int lastOperator = Math.max(                                //this method finds the last time an opperator
-                expresion.lastIndexOf('+'),                     //was used to so a decimal point isn't used twice
-                Math.max(                                           //on a single opperrand
-                        expresion.lastIndexOf('-'),
-                        Math.max(
-                                expresion.lastIndexOf('*'),
-                                expresion.lastIndexOf('/'))));
-
-        String currentNumber = expresion.substring(lastOperator + 1);
-
-        if (!currentNumber.contains(".")) {
-            view.setDisplayText(expresion + ".");
-        }
-    }
-
-    public boolean isOperator(char lastChar) {
-        return lastChar == '+'
-                || lastChar == '-'
-                || lastChar == '*'
-                || lastChar == '/';
-    }
-
-
 }

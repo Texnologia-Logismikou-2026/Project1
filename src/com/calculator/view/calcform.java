@@ -1,21 +1,17 @@
 package com.calculator.view;
 
 import com.calculator.controller.CalculatorController;
-import com.calculator.exception.CalculatorException;
 import com.calculator.model.BasicCalculatorModel;
 import com.calculator.model.CalculatorModel;
-import com.calculator.model.Operator;
 import com.calculator.service.HistoryService;
 import com.calculator.service.InMemoryHistoryService;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyListener;
-import java.util.List;
 
-public class calcform implements CalculatorView{            //must implement CalculatorView for the controller to function
+public class calcform implements CalculatorView {
+
     private JPanel panel1;
     private JButton a7Button;
     private JButton clearButton;
@@ -40,213 +36,148 @@ public class calcform implements CalculatorView{            //must implement Cal
     private JPanel buttonpan;
     private JTextField textfieldforcalc;
 
-    public static void main(String[] args) {
-
-        SwingUtilities.invokeLater(() -> {
-            calcform form = new calcform();
-
-            CalculatorModel model= new BasicCalculatorModel();
-            HistoryService historyService=new InMemoryHistoryService();
-            CalculatorView view=form;
-            CalculatorController controller =new CalculatorController(model,view,historyService);
-
-            JFrame frame = new JFrame("Calculator");
-            frame.setContentPane(form.panel1);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(300, 420);
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-            frame.setMinimumSize(new Dimension(250, 350));
-        });
-
-    }
     public calcform() {
+        // Εξασφάλιση ότι τα components έχουν αρχικοποιηθεί
+        initComponents();
+        styleButtons();
+    }
 
-        a7Button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2,true));
-        clearButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        a1Button.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        a4Button.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        a8Button.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        a9Button.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        mulButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        minusButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        addButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        resultButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        a6Button.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        a3Button1.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        dotButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        a5Button.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        a2Button.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        a0Button.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        slashButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        rootButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        powerButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        backspaceButton.setBorder(BorderFactory.createLineBorder(Color.BLACK,2,true));
-        /*    backspaceButton.addActionListener(new ActionListener() {                  different method for button listeners
-            @Override
-            public void actionPerformed(ActionEvent e) {
+    private void initComponents() {
+        if (panel1 == null) {
+            panel1 = new JPanel(new BorderLayout(5, 5));
+            panel1.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+            textfieldforcalc = new JTextField();
+            textfieldforcalc.setFont(new Font("Arial", Font.BOLD, 22));
+            textfieldforcalc.setHorizontalAlignment(JTextField.RIGHT);
+            textfieldforcalc.setEditable(false);
+            panel1.add(textfieldforcalc, BorderLayout.NORTH);
+
+            buttonpan = new JPanel(new GridLayout(5, 4, 5, 5));
+
+            // Γραμμή 1
+            clearButton = new JButton("C");
+            backspaceButton = new JButton("⌫");
+            powerButton = new JButton("^");
+            slashButton = new JButton("/");
+
+            // Γραμμή 2
+            a7Button = new JButton("7");
+            a8Button = new JButton("8");
+            a9Button = new JButton("9");
+            mulButton = new JButton("*");
+
+            // Γραμμή 3
+            a4Button = new JButton("4");
+            a5Button = new JButton("5");
+            a6Button = new JButton("6");
+            minusButton = new JButton("-");
+
+            // Γραμμή 4
+            a1Button = new JButton("1");
+            a2Button = new JButton("2");
+            a3Button1 = new JButton("3");
+            addButton = new JButton("+");
+
+            // Γραμμή 5
+            rootButton = new JButton("√");
+            a0Button = new JButton("0");
+            dotButton = new JButton(".");
+            resultButton = new JButton("=");
+
+            // Τοποθέτηση στο Grid Panel
+            buttonpan.add(clearButton);
+            buttonpan.add(backspaceButton);
+            buttonpan.add(powerButton);
+            buttonpan.add(slashButton);
+
+            buttonpan.add(a7Button);
+            buttonpan.add(a8Button);
+            buttonpan.add(a9Button);
+            buttonpan.add(mulButton);
+
+            buttonpan.add(a4Button);
+            buttonpan.add(a5Button);
+            buttonpan.add(a6Button);
+            buttonpan.add(minusButton);
+
+            buttonpan.add(a1Button);
+            buttonpan.add(a2Button);
+            buttonpan.add(a3Button1);
+            buttonpan.add(addButton);
+
+            buttonpan.add(rootButton);
+            buttonpan.add(a0Button);
+            buttonpan.add(dotButton);
+            buttonpan.add(resultButton);
+
+            panel1.add(buttonpan, BorderLayout.CENTER);
+        }
+    }
+
+    private void styleButtons() {
+        JButton[] buttons = {
+                a7Button, clearButton, a1Button, a4Button, a8Button, a9Button,
+                mulButton, minusButton, addButton, resultButton, a6Button,
+                a3Button1, dotButton, a5Button, a2Button, a0Button,
+                slashButton, rootButton, powerButton, backspaceButton
+        };
+
+        for (JButton btn : buttons) {
+            if (btn != null) {
+                btn.setFont(new Font("Arial", Font.BOLD, 16));
+                btn.setFocusPainted(false);
+                btn.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true));
             }
-        });
-        powerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        }
+    }
 
-            }
-        });
-        rootButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        slashButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a0Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a2Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a5Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        dotButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a3Button1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a6Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        resultButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        minusButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        mulButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a9Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a8Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a4Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a1Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-
-        clearButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        a7Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-       });  */
+    public JPanel getPanel1() {
+        return panel1;
     }
 
     public void setDisplayText(String text) {
-        textfieldforcalc.setText(text);
+        if (textfieldforcalc != null) {
+            textfieldforcalc.setText(text);
+        }
     }
 
     public String getDisplayText() {
-        return textfieldforcalc.getText();
+        return (textfieldforcalc != null) ? textfieldforcalc.getText() : "";
     }
+
     @Override
     public void showError() {
-
+        if (textfieldforcalc != null) {
+            textfieldforcalc.setText("Error");
+        }
     }
 
     public void showError(String message) {
-        textfieldforcalc.setText(message);
+        if (textfieldforcalc != null) {
+            textfieldforcalc.setText(message);
+        }
     }
 
     public void clearDisplay() {
-        textfieldforcalc.setText("");
+        if (textfieldforcalc != null) {
+            textfieldforcalc.setText("");
+        }
     }
+
     @Override
-    public void addButtonListener(ActionListener listener){
-        this.a4Button.addActionListener(listener);
-        this.a2Button.addActionListener(listener);
-        this.a1Button.addActionListener(listener);
-        this.a0Button.addActionListener(listener);
-        this.a7Button.addActionListener(listener);
-        this.a3Button1.addActionListener(listener);
-        this.a5Button.addActionListener(listener);
-        this.a6Button.addActionListener(listener);
-        this.a8Button.addActionListener(listener);
-        this.a9Button.addActionListener(listener);
-        this.addButton.addActionListener(listener);
-        this.backspaceButton.addActionListener(listener);
-        this.clearButton.addActionListener(listener);
-        this.dotButton.addActionListener(listener);
-        this.minusButton.addActionListener(listener);
-        this.mulButton.addActionListener(listener);
-        this.resultButton.addActionListener(listener);
-        this.slashButton.addActionListener(listener);
-        this.powerButton.addActionListener(listener);
-        this.rootButton.addActionListener(listener);
+    public void addButtonListener(ActionListener listener) {
+        JButton[] buttons = {
+                a7Button, clearButton, a1Button, a4Button, a8Button, a9Button,
+                mulButton, minusButton, addButton, resultButton, a6Button,
+                a3Button1, dotButton, a5Button, a2Button, a0Button,
+                slashButton, rootButton, powerButton, backspaceButton
+        };
+
+        for (JButton btn : buttons) {
+            if (btn != null) {
+                btn.addActionListener(listener);
+            }
+        }
     }
-
-
 }
